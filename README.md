@@ -3,4 +3,5 @@
 To compile and run the program do the following:
 
 1. npm install
-1. npm start
+2. npm install crypto-js
+3. npm start

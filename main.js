@@ -1,3 +1,4 @@
+var AES = require("crypto-js/aes");
 var SHA256 = require("crypto-js/sha256");
 var WebSocket = require("ws");
 var taskID = 1;
@@ -60,7 +61,7 @@ console.log("Genesis block created.");
 var blockchain = [getGenesisBlockTopLevel()];
 
 console.log ("Blockchain:" + blockchain);
-
+console.log ("Genesis block's hash is " + blockchain[0].hash);
 console.log("Please enter the data you would like to push:");
 console.log("The data is \"giraffe\"");
 var newData = "giraffe";
@@ -84,7 +85,10 @@ var nextBlock = (blockProperties) => {
     var timestamp = Math.floor(Date.now() / 1000);
     var block = new Block(index, previousBlockHash,timestamp, taskQueue, solutionQueue, hash);
     blockchain.push(block);
+    console.log (block);
 };
+
+console.log("after adding giraffe the blockchain is the following: " + blockchain);
 
 // if (isValidChain(block, getLatestBlock())) {
 //     blockchain.push(block);
@@ -114,7 +118,7 @@ var calculateHashForBlock = (block) => {
     return calculateHash(block.index, block.previousHash, block.solutionQueue);
 };
 
-var calculateHash = (index, previousHash, taskQueue, solutionQueue) => {
+var calculateHash = (index, previousHash, subSolution) => {
     return SHA256(index + previousHash + SHA256(subSolution)).toString();
 };
 
