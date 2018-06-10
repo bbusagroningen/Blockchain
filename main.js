@@ -15,24 +15,24 @@ class Task {
 };
 
 //Initialize server
-var initializeServer = () => {
-    var server = new WebSocket.Server({
-        port: port
-    });
-    server.on ('connect', ws => initializeConnect(ws));
-    console.log('listen on port '+ port);
-}
+// var initializeServer = () => {
+//     var server = new WebSocket.Server({
+//         port: port
+//     });
+//     server.on ('connect', ws => initializeConnect(ws));
+//     console.log('listen on port '+ port);
+// }
 
-var initializeConnect = (ws) => {
-    sockets.push(ws);
-}
+// var initializeConnect = (ws) => {
+//     sockets.push(ws);
+// }
 
-var connect = (newPeer) => {
-    newPeer.forEach((peer) => {
-        var ws = new WebSocket (peer);
-        ws.on('open', () => initializeConnect(ws));
-    });
-};
+// var connect = (newPeer) => {
+//     newPeer.forEach((peer) => {
+//         var ws = new WebSocket (peer);
+//         ws.on('open', () => initializeConnect(ws));
+//     });
+// };
 
 //Specify block properties
 class Block {
@@ -59,23 +59,31 @@ console.log("Genesis block created.");
 //Create a blockchain
 var blockchain = [getGenesisBlockTopLevel()];
 
+console.log ("Blockchain:" + blockchain);
+
+console.log("Please enter the data you would like to push:");
+console.log("The data is \"giraffe\"");
+var newData = "giraffe";
+
 var nextBlock = (blockProperties) => {
     // The user is prompt to enter new data (this later can be implemented into uploading 
     // a file for example)
     var latestBlock = getLatestBlock();
     var taskQueue = latestBlock.taskQueue;
     var solutionQueue = latestBlock.solutionQueue;
-    console.log("Please enter the data you would like to push:");
-    console.log("The data is \"giraffe\"");
-    var newData = "giraffe";
+    taskQueue.push(newData);
     var previousBlockIndex = blockchain[blockchain.length - 1];
     var index = previousBlockIndex.index+1;
     var previousBlockHash = blockchain[blockchain.length-1].hash;
-    var subSolution = calculateSubSolution(taskQueue, solutionQueue);
+
+    if (taskQueue.size > 0){
+        var subSolution = calculateSubSolution(taskQueue, solutionQueue);
+    }
+    
     var hash = calculateHash(index, previousBlockHash, subSolution);
     var timestamp = Math.floor(Date.now() / 1000);
     var block = new Block(index, previousBlockHash,timestamp, taskQueue, solutionQueue, hash);
-    
+    blockchain.push(block);
 };
 
 // if (isValidChain(block, getLatestBlock())) {
