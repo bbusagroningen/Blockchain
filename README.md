@@ -2,6 +2,8 @@
 
 To compile and run the program do the following:
 
-`npm install`
-`npm install crypto-js`
-`npm start`
+1. `npm install`
+
+2. `npm install crypto-js`
+
+3. `npm start`
