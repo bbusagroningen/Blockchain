@@ -1,4 +1,3 @@
-var AES = require("crypto-js/aes");
 var SHA256 = require("crypto-js/sha256");
 var WebSocket = require("ws");
 var taskID = 1;
@@ -15,25 +14,13 @@ class Task {
     };
 };
 
-//Initialize server
-// var initializeServer = () => {
-//     var server = new WebSocket.Server({
-//         port: port
-//     });
-//     server.on ('connect', ws => initializeConnect(ws));
-//     console.log('listen on port '+ port);
-// }
-
-// var initializeConnect = (ws) => {
-//     sockets.push(ws);
-// }
-
-// var connect = (newPeer) => {
-//     newPeer.forEach((peer) => {
-//         var ws = new WebSocket (peer);
-//         ws.on('open', () => initializeConnect(ws));
-//     });
-// };
+class Solution {
+    constructor(data, id, solvedBy){
+        this.data = data;
+        this.id = id;
+        this.solvedBy = solvedBy;
+    }
+}
 
 //Specify block properties
 class Block {
@@ -46,9 +33,9 @@ class Block {
         this.hash = hash.toString();
     }
 }
-console.log("Block defined.");
+
 //Create the genesis block
-var getGenesisBlockTopLevel = () => {
+var getGenesisBlock = () => {
     var i = 1;
     var t = Math.floor(Date.now() / 1000);
     var taskQueue = [];
@@ -56,62 +43,81 @@ var getGenesisBlockTopLevel = () => {
     var hash = SHA256(t).toString();
     return new Block(i, "0", t, taskQueue, solutionQueue, hash);
 };
-console.log("Genesis block created.");
-//Create a blockchain
-var blockchain = [getGenesisBlockTopLevel()];
 
-console.log ("Blockchain:" + blockchain);
-console.log ("Genesis block's hash is " + blockchain[0].hash);
-console.log("Please enter the data you would like to push:");
-console.log("The data is \"giraffe\"");
-var newData = "giraffe";
+//Create a blockchain
+var blockchain = [getGenesisBlock()];
+
+var printBlockchain = (taskQueue, solutionQueue) => {
+    var length = blockchain.length;
+    console.log("blockchain's length is " + length);
+    for (i = 0; i < length; i++) {
+        console.log(blockchain[i].taskQueue);
+    }
+    console.log("solutionQueue:")
+    for (i = 0; i < length; i++) {
+        console.log(blockchain[i].solutionQueue);
+    };
+};
+
+var printLastBlock = (taskQueue, solutionQueue) => {
+    var length = blockchain.length;
+    console.log("blockchain:[");
+    console.log("taskQueue: ");
+    console.log(taskQueue);
+    console.log("solutionQueue:");
+    console.log(solutionQueue);
+    console.log("]");
+}
 
 var nextBlock = (blockProperties) => {
-    // The user is prompt to enter new data (this later can be implemented into uploading 
-    // a file for example)
+
     var latestBlock = getLatestBlock();
     var taskQueue = latestBlock.taskQueue;
     var solutionQueue = latestBlock.solutionQueue;
-    taskQueue.push(newData);
-    var previousBlockIndex = blockchain[blockchain.length - 1];
-    var index = previousBlockIndex.index+1;
-    var previousBlockHash = blockchain[blockchain.length-1].hash;
+    var previousBlockIndex = latestBlock.index;
+    var previousBlockHash = latestBlock.hash;
 
-    if (taskQueue.size > 0){
-        var subSolution = calculateSubSolution(taskQueue, solutionQueue);
-    }
-    
+    var task = "giraffe";
+    taskID = taskID+1;
+    var newTask = new Task(task, taskID);
+    //Task giraffe is pushed to the taskQueue
+    taskQueue.push(newTask);
+    printLastBlock(taskQueue, solutionQueue);
+    var index = previousBlockIndex.index+1;
+    var subSolution = calculateSubSolution(taskQueue, solutionQueue);
     var hash = calculateHash(index, previousBlockHash, subSolution);
     var timestamp = Math.floor(Date.now() / 1000);
     var block = new Block(index, previousBlockHash,timestamp, taskQueue, solutionQueue, hash);
-    blockchain.push(block);
-    console.log (block);
+    if (isValidChain(block, getLatestBlock())){
+        blockchain.push(block);
+    }else{
+        console.log("chain is not valid");
+    }
+    printLastBlock(taskQueue, solutionQueue);
 };
 
-console.log("after adding giraffe the blockchain is the following: " + blockchain);
-
-// if (isValidChain(block, getLatestBlock())) {
-//     blockchain.push(block);
-// }else{
-//     nextBlock();
-// };
+var getLatestBlock = () => {
+    return blockchain[blockchain.length - 1];
+}
 
 var calculateSubSolution = (taskQueue, solutionQueue) => {
-    if (taskQueue.size > 0){
-        var firstTask = taskQueue.pop();
-        var task = firstTask.data;
-        var taskID = firstTask.id;
-    }else{
-        nextBlock();
-    }
+    var firstTask = taskQueue.pop();
+    var task = firstTask.data;
+    var taskID = firstTask.id;
+    
     //Do whatever needs to be done here on the task
     //Lets assume that the task is to convert the string with its task ID
     // into a SHA256
-    var subSolution = SHA256(task,taskID).toString();
+    task = SHA256 (task).toString();
+
+    // Get machine's IP, or MAC (not really possible in js) address
+    var worker = "Barnabas";
+
+    var subSolution = new Solution(task, taskID, worker);
     solutionQueue.push(subSolution);
-    console.log("The subSolution is " +  subSolution);
     return subSolution;
-}
+};
+
 
 
 var calculateHashForBlock = (block) => {
@@ -122,17 +128,17 @@ var calculateHash = (index, previousHash, subSolution) => {
     return SHA256(index + previousHash + SHA256(subSolution)).toString();
 };
 
-var getLatestBlock = () => blockchain[blockchain.length - 1];
 
 var isValidChain = (block, previousBlock) => {
-    if (previousBlock.hash != block.previousHash) {
-        console.log('Hash mismatch');
+    if (previousBlock.hash == block.hash) {
+        console.log("Hash mismatch");
         return false;
-    } else if (previousBlock.index != block.index + 1) {
-        console.log('index mismatch');
+    } else if (previousBlock.index == block.index + 1) {
+        console.log("index mismatch");
         return false;
     }
     return true;
 };
-
+console.log("Moving on to the next block, new task");
 nextBlock();
+
