@@ -19,8 +19,38 @@ class Solution {
         this.data = data;
         this.id = id;
         this.solvedBy = solvedBy;
-    }
-}
+    };
+};
+
+//Initialize server
+var initializeServer = () => {
+    var server = new WebSocket.Server({
+        port: port
+    });
+    server.on ("connect", ws => initializeConnect(ws));
+    console.log("listen on port "+ port);
+};
+
+var initializeConnection = (ws) => {
+    sockets.push(ws);
+};
+
+var connect = (newPeer) => {
+    newPeer.forEach((peer) => {
+        var ws = new WebSocket (peer);
+        ws.on("open", () => initializeConnection(ws));
+    });
+};
+
+var connectToPeers = (newPeer) => {
+    newPeer.forEach((peer) => {
+        var ws = new WebSocket(peer);
+        ws.on("open", () => initConnection(ws));
+        ws.on("error", () => {
+            console.log("connection failed");
+        });
+    });
+};
 
 //Specify block properties
 class Block {
@@ -31,8 +61,8 @@ class Block {
         this.taskQueue = taskQueue;
         this.solutionQueue = solutionQueue;
         this.hash = hash.toString();
-    }
-}
+    };
+};
 
 //Create the genesis block
 var getGenesisBlock = () => {
@@ -52,7 +82,7 @@ var printBlockchain = (taskQueue, solutionQueue) => {
     console.log("blockchain's length is " + length);
     for (i = 0; i < length; i++) {
         console.log(blockchain[i].taskQueue);
-    }
+    };
     console.log("solutionQueue:")
     for (i = 0; i < length; i++) {
         console.log(blockchain[i].solutionQueue);
@@ -67,7 +97,7 @@ var printLastBlock = (taskQueue, solutionQueue) => {
     console.log("solutionQueue:");
     console.log(solutionQueue);
     console.log("]");
-}
+};
 
 var nextBlock = (blockProperties) => {
 
@@ -92,13 +122,13 @@ var nextBlock = (blockProperties) => {
         blockchain.push(block);
     }else{
         console.log("chain is not valid");
-    }
+    };
     printLastBlock(taskQueue, solutionQueue);
 };
 
 var getLatestBlock = () => {
     return blockchain[blockchain.length - 1];
-}
+};
 
 var calculateSubSolution = (taskQueue, solutionQueue) => {
     var firstTask = taskQueue.pop();
@@ -141,4 +171,4 @@ var isValidChain = (block, previousBlock) => {
 };
 console.log("Moving on to the next block, new task");
 nextBlock();
-
+initializeServer();
